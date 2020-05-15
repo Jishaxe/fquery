@@ -3,7 +3,7 @@ Fake-jQuery. A JS tool designed to replicate a good portion of the functionality
 
 Useful if you need a thin utility for prototyping, or you're building A/B tests for the web, and need utilities, and don't want to add too much bulk. It's also highly extensible.
 
-Disclaimer: While this tool is is very versatile and powerful, that comes at a cost, which is that it can be fragile if not used in the right way, and is *barely* type-controlled. This is why it's reccomended for use for small or controlled use cases. Probably best not  use it in production. Although, maybe this applies to all JavaScript.
+Disclaimer: While this tool is is very versatile and powerful, that comes at a cost, which is that it can be fragile if not used in the right way, and is *barely* type-controlled. This is why it's reccomended for use for small or controlled use cases. Probably best not  use it in production. // well, no-one will use it if you say that ;) Although, maybe this applies to all JavaScript. // lmao
 
 ## How to use it
 The fQuery function is put on the global variable `fQuery`. For a more jQuery-like experience, you could do `window.$ = fQuery`. This isn't done by default, to make fQuery non-conflicting by default.
@@ -32,12 +32,17 @@ So the first thing we wanted, selecting and applying changes to DOM elements as 
 
 `fQuery.alias` is a plain object that contains aliases for common DOM APIs, which you can easily add to for your own purposes. The keys are the alias names and the values are the real names.
 
+// could give an example of how to add your own alias here
+// i think it's just gonna be fQuery.alias['+class'] = 'classList.add', but it took me a minute to figure out what you meant
+
 So instead of using `classList.add`, we can now do:
 ```javascript
 $('div')('+class', 'foo');
 ```
 
-Since I haven't documented them yet, for all the default aliases, I would reccomend checking the source code. There are also some advanced ways they can be used, which will be explained further on. Also note that because we're using strings instead of property names, there are few limitations on what characters can be used, so `$('div')('+class', 'foo')` works, where `$('div').+class` would not.
+Since I haven't documented them yet, for all the default aliases, I would recommend checking the source code. There are also some advanced ways they can be used, which will be explained further on. Also note that because we're using strings instead of property names, there are few limitations on what characters can be used, so `$('div')('+class', 'foo')` works, where `$('div').+class` would not.
+
+// even if i had set the alias to 'addClass', would $('div').addClass work or would it need to be $('div')('addClass', 'foo')?
 
 fQuery can also be used to get/set properties. For example:
 ```javascript
@@ -65,6 +70,8 @@ fQuery('div', window[0].document);
 // parses input as HTML
 fQuery('<div>Hello, world!</div>', false);
 ```
+// i'd maybe choose to $ or fQuery() consistently for the whole doc, not a mix of both, switch is jarring
+// also maybe providing an example of the resulting contents of 'this' after each call
 
 Returns an instance of the `fQuery.doAction` function, with an array of elements bound as `this`.
 
@@ -85,7 +92,20 @@ This function is difficult to document comprehensively, in a way that makes sens
 
 Feel free to read the source code if you want a fuller understanding - there isn't that much of it, after all.
 
+// maybe a reminder here that an instance of doAction is returned after calling fQuery
+// i had already forgot
+// additionally, this section feels like it would be better equipped as an "advanced explanation/usage" of some kind
+// obviously doAction is crucial but it reads like you are explaining the internal workings, and if I just wanted to make use of the library quickly, it would be better to instead have a section of examples at the top with the 10 most common use cases and with less focus on internals, and then a more detailed explanation nearer the bottom
+
+// eg:
+### Adding the class 'hovered' to the 2nd div on the page
+```javascript
+fQuery('div')(2)('classList.add', 'hovered')
+```
+
+
 After `action`, the remaining arguments are put into an array called `acargs`, and are used differently depending on what `action` is provided.
+// ^ didnt quite understand what you mean by 'after action', rephrase?
 
 #### When `action` is `undefined`
 Returns `this`
@@ -102,13 +122,18 @@ The `this` array is cut down using the `Array.prototype.slice` function, dependi
 ```javascript
 // returns a doAction instance where the "this" array contains all divs on the page
 var $divs = fQuery('div');
+
 // returns a doAction instance where the "this" array only contains the 3rd element in the array
 // array will be empty if the 3rd element is undefined or null
 $divs(2);
+
 // "Array.prototype.slice" is called with no second argument
 // therefore the array is sliced from the 3rd element to the end
 // see MDN documentation of "Array.prototype.slice" for more info
 $divs(2, null);
+
+// ^ i feel like this is a bit unintuitive, as Array.prototype.slice(2) would achieve the same effect without passing null explicitly
+
 // "Array.prototype.slice" is called with a second argument
 // therefore the array is sliced from the 3rd element to the 6th element
 // see MDN documentation of "Array.prototype.slice" for more info
@@ -118,11 +143,15 @@ $divs(2, 5);
 #### When `action` is `function`
 Returns an instance of the `fQuery.doAction` function, with an array of elements bound as `this`.
 
+
 `action` is used as a callback function to iterate through each element in the list. The first two arguments provided to the callback are always the current element, and the index of that element in the `this` array.
 
 The `acargs` array is then used to populate the rest of the arguments to the callback, i.e., arguments provided after the callback are then passed to the callback, just like how arguments passed after the 2nd argument of `setTimeout` are then passed to the callback.
+// ^ good using setTimeout as an example here, helped me understand
 
 If the callback returns `false`, then that element will not be included the array that gets bound to the return instance of `doAction`
+// so it also doubles as filter as well as forEach? maybe should be a seperate method, it might be easy to forget this and return false for some other reason by accident
+
 ```javascript
 // returns a doAction instance where the "this" array contains all divs on the page
 var $divs = fQuery('div');
@@ -146,8 +175,12 @@ $divs(filterByChildNumber, 1);
 
 #### When `action` is `array`
 `action` is put into a variable called `acarr`
+
 `action` becomes `acarr[0]`
+
 `acargs` is then a concatenation of `acarr` and `acargs`
+
+// could provide example of what acargs and acarr looks like here
 
 The easy way of thinking about it, is that this array works just like passing in a list of arguments, as you would normally, but because it's an array, can be modified programatically, or re-used.
 
@@ -162,6 +195,8 @@ $divs(insertTextAfter, 'foo');
 // inserts "bar" after every element in the array
 $divs(insertTextAfter, 'bar');
 ```
+
+// i feel like this functionality would be better used in alias, so you can just do fQuery.alias['insertTextAfter'] = ['insertAdjacentText', 'afterend'] and then $divs('insertTextAfter')
 
 #### When `action` is `array` of `array`s
 `action` is essentially used as a queue of multiple actions, each getting run one after the other. This way, you can programmatically queue up functionality, or just pre-load functionality for repeat use.
@@ -185,6 +220,7 @@ fQuery contains 3 shortcut objects:
 * `fQuery.iterators`
 * `fQuery.funcs`
 * `fQuery.alias`
+
 When a string is passed in, the first thing that is done is these 3 objects are checked to see if the string you have passed in matches any of the keys in any of these objects. The first object to contain a matching key is the one that gets used, if any. This means that if `iterators` and `alias` both had a key of the same name, then the one in `iterators` would always get picked.
 
 ##### `iterators`
@@ -196,10 +232,13 @@ function not(el, i, sel){
     var match = Element.prototype.matches || Element.prototype.msMatchesSelector;
     return !match.call(el, sel);
 },
+
 // normal usage, as shown in "When `action` is `function`"
 fQuery('div')(not, '.foo');
+
 // if we want the "not" function to be available everywhere, we can just:
 fQuery.iterators.not = not;
+
 // then use it by doing the following, which does the exact same as above
 fQuery('div')('not', '.foo');
 // this is actually one of the preconfigured ones, so you won't have to do this yourself if you like the function
@@ -221,6 +260,7 @@ fQuery.funcs.has = function(val){
 // returns false
 fQuery('div')('has', document.body);
 ```
+// i dont understand how funcs is any different from passing in a function, apart from it not passing el and i as the first two arguments
 
 ##### `alias`
 The values on `alias` can be strings, arrays, or a function that returns either of those things.
@@ -256,7 +296,10 @@ fQuery.alias = {
 #### When `action` is `string` - element properties and functions
 If none of the above shortcut objects are matched, then the string will be used to get properties of the elements in the `this` array. Below are the rules that govern that process:
 
-Another shortcut object is invoked, called `fQuery.propalias`. `alias` requires that the passed string fully matches one of the items, but `propalias` matches by segments of the property name. For example, `data: "dataset"` is one of the propaliases, meaning you can do `$('div')('data.foo')` instead of `$('div')('dataset.foo')`
+// what happens if the user adds the same elements to iterators, funcs or alias? is there an order of checking, or does it error?
+
+Another shortcut object is invoked, called `fQuery.propalias`. 
+`alias` requires that the passed string fully matches one of the items, but `propalias` matches by segments of the property name. For example, `data: "dataset"` is one of the propaliases, meaning you can do `$('div')('data.foo')` instead of `$('div')('dataset.foo')`
 ```javascript
 // default propalias object at time of writing
 // 0 denotes the first portion of the property string, each portion is delimited by a .
@@ -269,6 +312,8 @@ fQuery.propalias = {
 }
 ```
 
+// this whole section below is too explicit and tiring to read - it can be simplified and explained through examples instead
+
 If the string refers to a property that is not a function and is not undefined, `doAction` will return the value of the property.
 
 If the string refers to a property that is not a function, and `acargs[0]` is defined, then several things can happen:
@@ -278,7 +323,7 @@ If the string refers to a property that is not a function, and `acargs[0]` is de
 $('input')('val', (val, i) => val+i);
 ```
 The callback takes the following arguments: Current property value, Current Index, Object that has the property, Current item in the `this` array, ...acargs
-* If the string refers to a property that is an object, and `acargs[0]` is an object, then the properties of the property are made to match `acargs[0]` (*I think*)
+* If the string refers to a property that is an object, and `acargs[0]` is an object, then the properties of the property are made to match `acargs[0]` (*I think*) // why does it do this
 ```javascript
 // sets element.dataset.foo = "bar" for every item
 $('div')('dataset', {foo:"bar"});
